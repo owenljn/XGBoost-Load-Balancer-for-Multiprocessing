@@ -6,16 +6,18 @@
 # --------------------------------------------------
 # This module simulates multiple clients that are sending requests to XGBoost server concurrently
 from __future__ import print_function
-import os
-import zmq
-import json
+
 import concurrent.futures
+import json
+import os
+
+import zmq
 
 # Set it to any number, it means the number of concurrent connected clients that are sending requests
 NBR_CLIENTS = 32
-IP = '127.0.0.1'
-PORT = 5555
-PARAMS = {}
+IP = '127.0.0.1'  # ip address is the ip of the back-end XGBoost server
+xgb_model_port = '5555'  # the port must be the same as the back-end XGBoost server
+PARAMS = {}  # Parameters contains the front-end request content
 
 
 def client_task(identity):
@@ -24,7 +26,7 @@ def client_task(identity):
 
     # ip, eg. 127.0.0.1
     # port, eg. 5555
-    socket.connect("tcp://{}:{}".format(IP, PORT))
+    socket.connect("tcp://{}:{}".format(IP, xgb_model_port))
 
     # Send request, get reply
     request = {PARAMS}
@@ -32,6 +34,7 @@ def client_task(identity):
     reply = socket.recv()
     s = json.loads(reply.decode('utf-8'))
     return s
+
 
 def main():
     print('Starting client ...')

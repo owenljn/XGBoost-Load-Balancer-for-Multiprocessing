@@ -6,18 +6,21 @@
 # --------------------------------------------------
 # This module loads the xgboost models for each worker process to handle incoming concurrent requests
 
-import zmq
 import json
-import pickle
 import multiprocessing
+import pickle
+
+import zmq
+
 # from xgboost import XGBRegressor, XGBClassifier, DMatrix
 
-NBR_WORKERS = 4
-num_gpus = 2
-xgb_model_port = '5555'
-xgb_model_path = './'  # Set the path here
+NBR_WORKERS = 4  # The number of workers depends on the GPU memory or system memory
+num_gpus = 2  # Specify how many GPUs you want to use
+xgb_model_port = '5555'  # This is the port of this back-end XGBoost server
+xgb_model_path = './'  # Set the model path here
 
-def worker_routine(ident, gpu_id, context=None):
+
+def worker_routine(ident, gpu_id):
     socket = zmq.Context().socket(zmq.REQ)
     socket.identity = u"Worker-{}".format(ident).encode("ascii")
     socket.connect("ipc://backend.ipc")
@@ -43,11 +46,10 @@ def worker_routine(ident, gpu_id, context=None):
             trans_request = json.loads(json_msg)
 
             prediction = model.predict(trans_request['data'])
-            result = {}
-            result['preds'] = prediction
+            result = {'preds': prediction}
 
         except Exception as ex:
-            result = {'preds': 'error'}
+            result = {'error': ex}
 
         finally:
             s = json.dumps(result).encode('utf-8')
@@ -63,7 +65,6 @@ if __name__ == '__main__':
     clients.bind(url_client)
     backend = context.socket(zmq.ROUTER)
     backend.bind(url_worker)
-
 
     # Start background tasks
     def start(task, *args):
