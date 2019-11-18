@@ -1,5 +1,5 @@
 # XGBoost-Load-Balancer-for-Multiprocessing
-This is a workaround to bypass the multiprocessing issue of XGBoost, since XGBoost is not thread-safe, running the model in the multiprocessing environment throws 'dmlc::Error'
+This is a workaround to bypass the multiprocessing issue of XGBoost, since XGBoost is not thread-safe, running the model in the multiprocessing environment throws 'dmlc::Error' https://github.com/dmlc/xgboost/issues/4246
 
 The xgboost_client.py here works as a front-end simulator that simulates multiple concurrent requests, these requests are attemping to call predict method of xgboost models, but instead of calling the predict method directly, they send requests to back-end using ZMQ load balancer.
 
