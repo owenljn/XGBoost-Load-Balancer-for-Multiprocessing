@@ -21,7 +21,8 @@ PARAMS = {}  # Parameters contains the front-end request content
 
 
 def client_task(identity):
-    socket = zmq.Context().socket(zmq.REQ)
+    context = zmq.Context.instance()
+    socket = context.socket(zmq.REQ)
     socket.identity = u"Client-{}".format(identity).encode("ascii")
 
     # ip, eg. 127.0.0.1
@@ -33,6 +34,10 @@ def client_task(identity):
     socket.send_json(request)
     reply = socket.recv()
     s = json.loads(reply.decode('utf-8'))
+
+    # Clean up by explicitly calling socket close and context terminate
+    socket.close()
+    context.term()
     return s
 
 
